@@ -6,7 +6,7 @@ use Doctrine\Common\Util\Inflector;
 
 class OrmYamlFixture extends AbstractFixture
 {
-    public function createObject($class, $data, $metadata, $options = array())
+    public function createObject($class, $data, $metadata, $options = [])
     {
         $mapping = array_keys($metadata->fieldMappings);
         $associations = array_keys($metadata->associationMappings);
@@ -37,10 +37,18 @@ class OrmYamlFixture extends AbstractFixture
         $object = $class->newInstanceArgs($constructArguments);
 
         foreach ($data as $field => $value) {
-            // Add the fields defined in the fistures file
-            $method = Inflector::camelize('set_' . $field);
-            //
-            if (in_array($field, $mapping)) {
+            $method = Inflector::camelize('set_'.$field);
+
+            if (is_array($value) && isset($value['_class'], $value['_data'])) {
+                $object->$method(
+                    $this->createObject(
+                        $value['_class'],
+                        $value['_data'],
+                        $metadata,
+                        array_merge(isset($value['_options']) ?: array(), array('call_service' => false))
+                    )
+                );
+            } elseif (in_array($field, $mapping)) {
                 // Dates need to be converted to DateTime objects
                 $type = $metadata->fieldMappings[$field]['type'];
                 if ($type == 'datetime' || $type == 'date' || $type == 'time') {
@@ -64,6 +72,11 @@ class OrmYamlFixture extends AbstractFixture
                 $object->$method($value);
             }
         }
+
+        if (isset($options['call_service']) && false === $options['call_service']) {
+            return $object;
+        }
+
         $this->runServiceCalls($object);
 
         return $object;
