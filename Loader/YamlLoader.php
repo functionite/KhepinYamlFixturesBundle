@@ -120,7 +120,7 @@ class YamlLoader
 
         if (!is_null($this->acl_manager)) {
             foreach ($this->fixture_files as $file) {
-                $fixture = new YamlAclFixture($file, $this);
+                $fixture = new YamlAclFixture($fixture_data, $this, $file);
                 $fixture->setAclManager($this->acl_manager);
                 $fixture->load($manager, func_get_args());
             }
