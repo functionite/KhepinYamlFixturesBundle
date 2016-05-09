@@ -2,9 +2,27 @@
 
 namespace Khepin\YamlFixturesBundle\Fixture;
 
+use Doctrine\Common\Persistence\ObjectManager;
+use Problematic\AclManagerBundle\Model\AclManagerInterface;
+
 class YamlAclFixture extends AbstractFixture
 {
-    public function load($acl_manager, $tags = null)
+    /**
+     * @var AclManagerInterface
+     */
+    private $aclManager;
+
+    /**
+     * @param AclManagerInterface $aclManager
+     */
+    public function setAclManager(AclManagerInterface $aclManager)
+    {
+        $this->aclManager = $aclManager;
+    }
+
+
+
+    public function load(ObjectManager $manager, $tags = null)
     {
         if (!$this->hasTag($tags) || !isset($this->file['acl'])) {
             return;
@@ -12,7 +30,7 @@ class YamlAclFixture extends AbstractFixture
 
         foreach ($this->file['acl'] as $reference => $permissions) {
             foreach ($permissions as $user => $permission) {
-                $acl_manager->setObjectPermission(
+                $this->aclManager->setObjectPermission(
                     $this->loader->getReference($reference),
                     $this->getMask($permission),
                     $this->loader->getReference($user)
@@ -23,15 +41,18 @@ class YamlAclFixture extends AbstractFixture
 
     /**
      * Retrieves the constant value for the given mask name
-     * @param  type $permission
-     * @return type
+     *
+     * @param  string $permission
+     *
+     * @return integer
+     * @see Symfony\Component\Security\Acl\Permission\MaskBuilder
      */
     public function getMask($permission)
     {
         return constant('Symfony\Component\Security\Acl\Permission\MaskBuilder::'.$permission);
     }
 
-    public function createObject($class, $data, $metadata, $options = array())
+    public function createObject($class, $data, $metadata, $options = [])
     {
         // No implementation for ACL fixtures
     }

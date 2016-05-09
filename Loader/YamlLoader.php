@@ -14,27 +14,29 @@ class YamlLoader
 
     /**
      *
-     * @var type
+     * @var KernelInterface
      */
     protected $kernel;
 
     /**
      * Doctrine entity manager
-     * @var type
+     * @var ObjectManager
      */
     protected $object_manager;
-
+    /**
+     * @var null|Problematic\AclManagerBundle\Domain\AclManager
+     */
     protected $acl_manager = null;
 
     /**
      * Array of all yml files containing fixtures that should be loaded
-     * @var type
+     * @var array
      */
     protected $fixture_files = array();
 
     /**
      * Maintains references to already created objects
-     * @var type
+     * @var array
      */
     protected $references = array();
 
@@ -54,7 +56,7 @@ class YamlLoader
 
     /**
      *
-     * @param type $manager
+     * @param Problematic\AclManagerBundle\Model\AclManagerInterface $manager
      */
     public function setAclManager($manager = null)
     {
@@ -63,8 +65,8 @@ class YamlLoader
 
     /**
      * Returns a previously saved reference
-     * @param  type $reference_name
-     * @return type
+     * @param  string $reference_name
+     * @return object
      */
     public function getReference($reference_name)
     {
@@ -73,8 +75,8 @@ class YamlLoader
 
     /**
      * Sets a reference to an object
-     * @param type $name
-     * @param type $object
+     * @param string $name
+     * @param object $object
      */
     public function setReference($name, $object)
     {
@@ -119,7 +121,8 @@ class YamlLoader
         if (!is_null($this->acl_manager)) {
             foreach ($this->fixture_files as $file) {
                 $fixture = new YamlAclFixture($file, $this);
-                $fixture->load($this->acl_manager, func_get_args());
+                $fixture->setAclManager($this->acl_manager);
+                $fixture->load($manager, func_get_args());
             }
         }
     }
